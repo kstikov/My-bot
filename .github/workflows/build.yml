@@ -22,8 +22,9 @@ jobs:
         with:
           version: 9
 
-      - name: Clean package.json
+      - name: Break workspace connections
         run: |
+          rm -f pnpm-workspace.yaml
           cd artifacts/nothing-muz
           sed -i '/@workspace\/api-client-react/d' package.json
 
@@ -33,6 +34,6 @@ jobs:
       - name: Install Deps and Build APK
         run: |
           cd artifacts/nothing-muz
-          pnpm install --no-frozen-lockfile --filter .
+          pnpm install --no-frozen-lockfile
           npx expo prebuild --platform android
           cd android && ./gradlew assembleRelease
