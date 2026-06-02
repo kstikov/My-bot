@@ -1,0 +1,33 @@
+name: Build Android APK
+on: [push, workflow_dispatch]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Unpack project ZIP
+        run: |
+          unzip -q "nothing_music (1).zip" -d ./
+          ls -la  # Проверка, что всё распаковалось
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Clean package.json
+        run: |
+          cd artifacts/nothing-muz
+          sed -i '/@workspace\/api-client-react/d' package.json
+
+      - name: Install Expo CLI
+        run: npm install -g expo-cli
+
+      - name: Install Deps and Build APK
+        run: |
+          cd artifacts/nothing-muz
+          npm install --legacy-peer-deps
+          npx expo prebuild --platform android
+          cd android && ./gradlew assembleRelease
