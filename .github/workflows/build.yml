@@ -33,6 +33,6 @@ jobs:
       - name: Install Deps and Build APK
         run: |
           cd artifacts/nothing-muz
-          pnpm install --no-frozen-lockfile
+          pnpm install --no-frozen-lockfile --filter .
           npx expo prebuild --platform android
           cd android && ./gradlew assembleRelease
