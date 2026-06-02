@@ -17,23 +17,20 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v3
-        with:
-          version: 9
-
-      - name: Break workspace connections
+      - name: Clean package.json from workspace and catalogs
         run: |
-          rm -f pnpm-workspace.yaml
           cd artifacts/nothing-muz
+          # Удаляем локальные зависимости воркспейса
           sed -i '/@workspace\/api-client-react/d' package.json
+          # Удаляем любые строчки, которые используют протокол catalog:
+          sed -i '/catalog:/d' package.json
 
       - name: Install Expo CLI
-        run: pnpm add -g expo-cli
+        run: npm install -g expo-cli
 
       - name: Install Deps and Build APK
         run: |
           cd artifacts/nothing-muz
-          pnpm install --no-frozen-lockfile
+          npm install --legacy-peer-deps
           npx expo prebuild --platform android
           cd android && ./gradlew assembleRelease
