@@ -17,20 +17,29 @@ jobs:
         with:
           node-version: 20
 
-      - name: Clean package.json from workspace and catalogs
+      - name: Pre-clean package.json
         run: |
           cd artifacts/nothing-muz
-          # Удаляем локальные зависимости воркспейса
+          # Выпиливаем локальные зависимости воркспейса
           sed -i '/@workspace\/api-client-react/d' package.json
-          # Удаляем любые строчки, которые используют протокол catalog:
-          sed -i '/catalog:/d' package.json
+          # Заменяем капризные "catalog:" на временный "latest", чтобы npm не падал
+          sed -i 's/"catalog:"/"latest"/g' package.json
 
       - name: Install Expo CLI
         run: npm install -g expo-cli
 
-      - name: Install Deps and Build APK
+      - name: Smart Install and Auto-Fix Dependencies
         run: |
           cd artifacts/nothing-muz
+          # Базовая установка
           npm install --legacy-peer-deps
+          # Expo сам проверяет package.json и заменяет версии на жестко совместимые
+          npx expo install --check
+          # Генерируем нативную папку android без лишних вопросов
           npx expo prebuild --platform android --no-install
-          cd android && ./gradlew assembleRelease
+
+      - name: Build Android App (Gradle)
+        run: |
+          cd artifacts/nothing-muz/android
+          chmod +x gradlew
+          ./gradlew assembleRelease
