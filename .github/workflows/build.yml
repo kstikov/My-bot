@@ -16,36 +16,28 @@ jobs:
         with:
           node-version: 20
 
-      - name: Wipe out all workspace garbage
+      - name: Hard-clean package.json
         run: |
           cd artifacts/nothing-muz
-          # Полностью чистим package.json от любых каталогов и воркспейсов
           sed -i '/@workspace\/api-client-react/d' package.json
           sed -i 's/"catalog:"/"latest"/g' package.json
-          # Насильно прописываем стандартные стабильные версии
           sed -i 's/"react": ".*"/"react": "19.1.0"/g' package.json
           sed -i 's/"react-dom": ".*"/"react-dom": "19.1.0"/g' package.json
 
-      - name: Clean Install Dependencies
+      - name: Install Dependencies
         run: |
           cd artifacts/nothing-muz
           npm install --legacy-peer-deps
 
-      - name: Build Web Assets Silently
+      - name: Generate Android Folder Plainly
         run: |
           cd artifacts/nothing-muz
-          # Компилируем чистый JS-код без вызова нативных команд Expo
-          npx expo export --platform android || true
+          # Запускаем пребилд БЕЗ каких-либо проверок и флагов, чисто создать папку android
+          npx expo prebuild --platform android --no-install
 
-      - name: Force Generate Android Native Project
-        run: |
-          cd artifacts/nothing-muz
-          # Создаем нативную папку без установки пакетов внутри нее
-          npx expo prebuild --platform android --no-install --skip-dependency-validation
-
-      - name: Build Pure Android APK
+      - name: Build Final APK
         run: |
           cd artifacts/nothing-muz/android
           chmod +x gradlew
-          # Собираем APK, полностью пропуская повторную сборку бандла, которая падала
-          ./gradlew assembleRelease -x createBundleReleaseJsAndAssets -x bundleReleaseJsAndAssets
+          # Собираем апк напрямую, забивая на внутренние проверки Expo
+          ./gradlew assembleRelease
