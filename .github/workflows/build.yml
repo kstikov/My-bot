@@ -10,12 +10,17 @@ jobs:
       - name: Unpack project ZIP
         run: |
           unzip -q "nothing_music (1).zip" -d ./
-          ls -la  # Проверка, что всё распаковалось
+          ls -la
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
 
       - name: Clean package.json
         run: |
@@ -23,11 +28,11 @@ jobs:
           sed -i '/@workspace\/api-client-react/d' package.json
 
       - name: Install Expo CLI
-        run: npm install -g expo-cli
+        run: pnpm add -g expo-cli
 
       - name: Install Deps and Build APK
         run: |
           cd artifacts/nothing-muz
-          npm install --legacy-peer-deps
+          pnpm install --no-frozen-lockfile
           npx expo prebuild --platform android
           cd android && ./gradlew assembleRelease
